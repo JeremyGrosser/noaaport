@@ -11,6 +11,29 @@ Example usage of the emwin python module that connects to an EMWIN server,
 parses the data stream, assembles packets into files, and writes complete files
 to /tmp/noaa
 
+Usage
+-----
+$ git clone https://github.com/synack/python-emwin.git
+Initialized empty Git repository in /home/synack/src/python-emwin/.git/
+remote: Counting objects: 6, done.
+remote: Compressing objects: 100% (5/5), done.
+remote: Total 6 (delta 0), reused 0 (delta 0)
+Unpacking objects: 100% (6/6), done.
+$ cd python-emwin/
+$ mkdir /tmp/noaa
+$ python download.py 
+2011-02-19 17:32:43,974 emwin DEBUG XOBWNHUS.ZIS (3/7)
+2011-02-19 17:32:45,279 emwin DEBUG MISDCPHN.TXT (1/1)
+Writing /tmp/noaa/MISDCPHN.TXT
+2011-02-19 17:32:46,563 emwin DEBUG XOBWNHUS.ZIS (4/7)
+2011-02-19 17:32:47,873 emwin DEBUG XOBWNHUS.ZIS (5/7)
+2011-02-19 17:32:49,171 emwin DEBUG XOBWNHUS.ZIS (6/7)
+2011-02-19 17:32:50,466 emwin DEBUG XOBWNHUS.ZIS (7/7)
+2011-02-19 17:32:51,764 emwin DEBUG RTPREVNV.ZIS (1/2)
+2011-02-19 17:32:53,060 emwin DEBUG RTPREVNV.ZIS (2/2)
+Writing /tmp/noaa/RTPREVNV.ZIS
+2011-02-19 17:32:54,357 emwin DEBUG OPUCHSSC.ZIS (1/1)
+
 
 References
 ----------
