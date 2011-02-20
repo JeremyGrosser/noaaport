@@ -1,0 +1,18 @@
+Python EMWIN Stream Parser
+--------------------------
+This is a native python module that reads a socket connected to an EMWIN server and parses the stream into usable Packets that can be assembled into files using
+the included FileAssembler.
+
+emwin.py:
+Implementation of the EMWIN protocol
+
+download.py:
+Example usage of the emwin python module that connects to an EMWIN server, 
+parses the data stream, assembles packets into files, and writes complete files
+to /tmp/noaa
+
+
+References
+----------
+http://www.weather.gov/emwin/winpro.htm
+http://www.inoaaport.net/
