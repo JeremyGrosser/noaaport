@@ -36,6 +36,7 @@ class Connection(object):
                 except:
                     log.error(sys.exc_info()[1])
                 buf = buf[1116:]
+        log.error('Connection closed by remote host')
         self.sock.close()
 
 
@@ -102,6 +103,7 @@ class FileAssembler(object):
             parts = self.parts.items()
             parts.sort(key=lambda x: x[0])
             content = ''.join([x[1] for x in parts])
-            content = content.rstrip('\x00')
+            if not self.filename.endswith('.ZIS'):
+                content = content.rstrip('\x00')
             self.content = content
             self.callback(self.filename, self.content)
