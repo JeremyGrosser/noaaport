@@ -1,4 +1,4 @@
-from time import strptime, mktime
+from time import strptime, mktime, time
 import logging
 import sys
 
@@ -12,10 +12,19 @@ log.setLevel(logging.DEBUG)
 class Connection(object):
     def __init__(self, sock):
         self.sock = sock
+        self.ident = 'ByteBlast Client|NM-emwin@synack.me|V1'
+        self.ident = ''.join([chr(ord(x) ^ 0xFF) for x in self.ident])
 
     def __iter__(self):
         buf = ''
+        last_ident = 0
         while True:
+            now = int(time())
+            if (now - last_ident) > 300:
+                log.info('Sending ident packet')
+                last_ident = now
+                self.sock.sendall(self.ident)
+
             buf += self.sock.recv(1116)
             if buf == '':
                 break
@@ -23,9 +32,9 @@ class Connection(object):
                 if not buf.startswith('\xFF\xFF\xFF\xFF\xFF\xFF'):
                     offset = buf.find('\xFF\xFF\xFF\xFF\xFF\xFF')
                     if offset == -1:
-                        log.info('Sync marker missing! Resetting buffer!')
+                        log.info('Sync marker missing! Abort!')
+                        break
                         buf = ''
-                        continue
                     buf = buf[offset:]
                     log.info('Discarding %i bytes before sync marker' % offset)
 
@@ -35,6 +44,7 @@ class Connection(object):
                     yield packet
                 except:
                     log.error(sys.exc_info()[1])
+                    break
                 buf = buf[1116:]
         log.error('Connection closed by remote host')
         self.sock.close()
