@@ -1,61 +1,57 @@
 #!/usr/bin/env python
+import logging
+import socket
 import emwin
 
-from zipfile import ZipFile
-from socket import socket
-import os.path
-import sys
-import os
 
-import logging
-log = logging.getLogger('emwin')
-log.setLevel(logging.DEBUG)
+class Streamer(object):
+    def __init__(self, hosts):
+        self.hosts = hosts
+        self.log = logging.getLogger('emwin')
+        self.log.setLevel(logging.DEBUG)
+        self.files = {}
+
+    def stream(self, host):
+        self.log.info('Connecting to %s:%i' % host)
+        self.sock = socket.socket()
+        self.sock.connect(host)
+        return emwin.Connection(self.sock)
+
+    def reliable_stream(self):
+        i = 0
+        while True:
+            try:
+                for packet in self.stream(self.hosts[i]):
+                    yield packet
+            except Exception, e:
+                self.log.error('Stream error %r: %s' % (self.hosts[i], str(e)))
+            i = (i + 1) % len(self.hosts)
+
+    def handle_incoming(self, filename, content):
+        del self.files[filename]
+        self.log.debug(filename)
+
+    def run(self):
+        for packet in self.reliable_stream():
+            if not packet.filename in self.files:
+                self.files[packet.filename] = emwin.FileAssembler(
+                    packet.filename, self.handle_incoming)
+            assembler = self.files[packet.filename]
+            assembler.add_part(packet)
+
 
 def main():
-    files = {}
-    host = ('1.nbsp.inoaaport.net', 2211)
+    s = Streamer([
+        ('1.pool.iemwin.net', 2211),
+        ('2.pool.iemwin.net', 2211),
+        ('1.nbsp.inoaaport.net', 2211),
+        ('2.nbsp.inoaaport.net', 2211),
+        ('3.nbsp.inoaaport.net', 2211),
+        ('texoma.wxpro.net', 2211),
+        ('emwin.aprsfl.net', 2211),
+    ])
+    s.run()
 
-    def handle(filename, content):
-        path = '/mnt/media/nws/%s' % filename[:3]
-        try:
-            os.makedirs(path)
-        except:
-            pass
-        filepath = os.path.join(path, filename[3:])
-        log.info('Writing %s' % filepath)
-
-        fd = file(filepath, 'wb')
-        fd.write(content)
-        fd.close()
-        del files[filename]
-
-        return
-        # This doesn't work because of null padding issues
-        if filename.endswith('.ZIS'):
-            try:
-                archive = ZipFile(filepath, 'r')
-                for afile in archive.namelist():
-                    log.info('Unpacking %s from %s' % (afile, filename))
-                    data = archive.read(afile)
-                    fd = file(os.path.join(path, afile[3:]))
-                    fd.write(data)
-                    fd.close()
-                os.unlink(filepath)
-            except:
-                log.warning('Unable to unpack %s: %s' % (filename, sys.exc_info()[1]))
-
-    while True:
-        log.info('Connecting to %s' % repr(host))
-        sock = socket()
-        sock.connect(host)
-
-        conn = emwin.Connection(sock)
-        for packet in conn:
-            #pprint(packet.dict())
-            if not packet.filename in files:
-                files[packet.filename] = emwin.FileAssembler(packet.filename, handle)
-            assembler = files[packet.filename]
-            assembler.add_part(packet)
 
 if __name__ == '__main__':
     main()

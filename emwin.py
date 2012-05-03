@@ -2,6 +2,7 @@ from time import strptime, mktime, time
 import logging
 import sys
 
+
 handler = logging.StreamHandler()
 handler.setFormatter(logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s'))
 log = logging.getLogger('emwin')
