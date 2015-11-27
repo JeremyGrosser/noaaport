@@ -200,8 +200,12 @@ def main():
 
 
 if __name__ == '__main__':
-    os.makedirs(warnprintdir)
-    os.makedirs(noticeprintdir)
+    try:
+       os.makedirs(warnprintdir)
+       os.makedirs(noticeprintdir)
+    except:
+       # If you can't write to /awips2, you're probably going to have a bad time 
+       None
     os.environ['TZ'] = 'GMT'
     z = IngestViaQPID()
     main()
