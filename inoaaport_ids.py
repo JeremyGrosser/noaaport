@@ -69,7 +69,7 @@ class Streamer(object):
 
 
 def main():
-    pqp = os.popen("/usr/local/ldm/bin/pqing -f IDS -l /usr/local/ldm/var/logs/ids_noaaport.log -v -", 'w')
+    pqp = os.popen("/awips2/ldm/bin/pqing -f IDS -l /awips2/ldm/var/logs/ids_noaaport.log -v -", 'w')
     s = Streamer([('1.nbsp.inoaaport.net', 2210)], 'IDS', pqp)
     s.run()
 
