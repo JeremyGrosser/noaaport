@@ -194,8 +194,8 @@ def do_notice(wmo,site,pil,content):
     return True
 
 def main():
-    (host,port,ddir) = ('w.nbsp.inoaaport.net', 2210)
-    s = Streamer([(host, port)], ddir)
+    (host,port) = ('w.nbsp.inoaaport.net', 2210)
+    s = Streamer([(host, port)])
     s.run()
 
 
