@@ -55,7 +55,7 @@ noaaport-pipe --pattern '^(KSE[WA]|KMTR)_' --output=KSEW/
 
 References
 ----------
-http://www.wmo.int/pages/prog/www/ois/Operational_Information/Publications/WMO_386/AHLsymbols/TableB1.html
-http://www.weather.gov/emwin/winpro.htm
-http://www.inoaaport.net/
-http://www.wxmesg.com/statusbyteservers.asp
+http://www.wmo.int/pages/prog/www/ois/Operational_Information/Publications/WMO_386/AHLsymbols/TableB1.html  
+http://www.weather.gov/emwin/winpro.htm  
+http://www.inoaaport.net/  
+http://www.wxmesg.com/statusbyteservers.asp  
