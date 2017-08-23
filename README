@@ -1,42 +1,61 @@
 Python EMWIN Stream Parser
 --------------------------
-This is a native python module that reads a socket connected to an EMWIN server and parses the stream into usable Packets that can be assembled into files using
-the included FileAssembler.
-
-emwin.py:
-Implementation of the EMWIN protocol
-
-download.py:
-Example usage of the emwin python module that connects to an EMWIN server, 
-parses the data stream, assembles packets into files, and writes complete files
-to /tmp/noaa
+This is a native python module that reads a socket connected to an
+EMWIN or NOAAPORT server and parses the stream into usable Packets
+that can be assembled into files using the included FileAssembler.
 
 Usage
 -----
-$ git clone https://github.com/synack/python-emwin.git
-Initialized empty Git repository in /home/synack/src/python-emwin/.git/
-remote: Counting objects: 6, done.
-remote: Compressing objects: 100% (5/5), done.
-remote: Total 6 (delta 0), reused 0 (delta 0)
-Unpacking objects: 100% (6/6), done.
+```
+$ git clone https://github.com/JeremyGrosser/python-emwin.git
 $ cd python-emwin/
-$ mkdir /tmp/noaa
-$ python download.py 
-2011-02-19 17:32:43,974 emwin DEBUG XOBWNHUS.ZIS (3/7)
-2011-02-19 17:32:45,279 emwin DEBUG MISDCPHN.TXT (1/1)
-Writing /tmp/noaa/MISDCPHN.TXT
-2011-02-19 17:32:46,563 emwin DEBUG XOBWNHUS.ZIS (4/7)
-2011-02-19 17:32:47,873 emwin DEBUG XOBWNHUS.ZIS (5/7)
-2011-02-19 17:32:49,171 emwin DEBUG XOBWNHUS.ZIS (6/7)
-2011-02-19 17:32:50,466 emwin DEBUG XOBWNHUS.ZIS (7/7)
-2011-02-19 17:32:51,764 emwin DEBUG RTPREVNV.ZIS (1/2)
-2011-02-19 17:32:53,060 emwin DEBUG RTPREVNV.ZIS (2/2)
-Writing /tmp/noaa/RTPREVNV.ZIS
-2011-02-19 17:32:54,357 emwin DEBUG OPUCHSSC.ZIS (1/1)
+$ python setup.py install
+$ noaaport-pipe --help
+usage: noaaport-pipe [-h] [--server SERVER [SERVER ...]]
+                     [--protocol {nbs,emwin}] [--pattern PATTERN]
+                     [--output OUTPUT]
+                     [--log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
+optional arguments:
+  -h, --help            show this help message and exit
+  --server SERVER [SERVER ...]
+                        hostname:port
+  --protocol {nbs,emwin}
+  --pattern PATTERN     regex to filter filenames from the feed
+  --output OUTPUT       write output to a directory rather than stdout
+  --log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
+```
+
+Examples
+--------
+All notices and warnings, but not test messages, printed to stdout
+```
+noaaport-pipe --pattern '^...._(N(^T)|W)'
+```
+
+Aviation related messages, with filenames on stderr
+```
+noaaport-pipe --pattern '^...._(S[AP]|F[ARTCU]|W[ACSVO])' --log-level=INFO
+```
+
+Write seismic data to files, with filenames on stderr
+```
+noaaport-pipe --pattern '^...._SE' --output=SEISMIC/ --log-level=INFO
+```
+
+EMWIN radar images to files
+```
+noaaport-pipe --pattern '^RAD' --output=RADAR/ --server 1.pool.iemwin.net:2211 --protocol emwin
+```
+
+All messages from KSEW, KSEA, or KMTR to files
+```
+noaaport-pipe --pattern '^(KSE[WA]|KMTR)_' --output=KSEW/
+```
 
 References
 ----------
+http://www.wmo.int/pages/prog/www/ois/Operational_Information/Publications/WMO_386/AHLsymbols/TableB1.html
 http://www.weather.gov/emwin/winpro.htm
 http://www.inoaaport.net/
 http://www.wxmesg.com/statusbyteservers.asp

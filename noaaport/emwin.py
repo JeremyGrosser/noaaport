@@ -1,13 +1,10 @@
 from time import strptime, mktime, time
-import logging
 import sys
 
+import noaaport.log
+import noaaport.zis
 
-handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s'))
-log = logging.getLogger('emwin')
-log.addHandler(handler)
-log.setLevel(logging.DEBUG)
+log = noaaport.log.get_logger('noaaport.emwin')
 
 
 class Connection(object):
@@ -117,4 +114,9 @@ class FileAssembler(object):
             if not self.filename.endswith('.ZIS'):
                 content = content.rstrip('\x00')
             self.content = content
-            self.callback(self.filename, self.content)
+
+            if self.filename.endswith('.ZIS'):
+                for filename, content in noaaport.zis.decompress(self.content):
+                    self.callback(self.filename, content, zip_filename=filename)
+            else:
+                self.callback(self.filename, self.content)

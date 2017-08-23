@@ -4,12 +4,10 @@ import logging
 import struct
 import sys
 
+import noaaport.log
 
-handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s'))
-log = logging.getLogger('nbs')
-log.addHandler(handler)
-log.setLevel(logging.DEBUG)
+
+log = noaaport.log.get_logger('noaaport.nbs')
 
 
 NBSHeader = namedtuple('NBSHeader', 'seq product_type product_category product_code channel_index filename compressed num_blocks block_number block_size')
