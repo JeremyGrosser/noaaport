@@ -1,7 +1,7 @@
-Python EMWIN Stream Parser
---------------------------
+noaaport
+--------
 This is a native python module that reads a socket connected to an
-EMWIN or NOAAPORT server and parses the stream into usable Packets
+NOAAPORT or EMWIN server and parses the stream into usable Packets
 that can be assembled into files using the included FileAssembler.
 
 Usage
