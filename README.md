@@ -7,8 +7,8 @@ that can be assembled into files using the included FileAssembler.
 Usage
 -----
 ```
-$ git clone https://github.com/JeremyGrosser/python-emwin.git
-$ cd python-emwin/
+$ git clone https://github.com/JeremyGrosser/noaaport.git
+$ cd noaaport/
 $ python setup.py install
 $ noaaport-pipe --help
 usage: noaaport-pipe [-h] [--server SERVER [SERVER ...]]
