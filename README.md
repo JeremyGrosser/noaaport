@@ -56,6 +56,23 @@ All messages from KSEW, KSEA, or KMTR to files
 noaaport-pipe --pattern '^(KSE[WA]|KMTR)_' --output=KSEW/
 ```
 
+Using it in a script
+--------------------
+```python
+import noaaport.pipe
+
+# Create a new pipe using the default server and protocol
+p = noaaport.pipe.Pipe()
+
+# Iterate through files received from the noaaport server
+for filename, content, zip_filename in p:
+	# If the filename ends with .ZIS, it's automatically unpacked and returned
+	# as separate files. zip_filename is set to the name inside the zip archive.
+	# zip_filename is always None when using the nbs protocol
+	print filename
+	print content
+```
+
 References
 ----------
 http://www.wmo.int/pages/prog/www/ois/Operational_Information/Publications/WMO_386/AHLsymbols/TableB1.html  
