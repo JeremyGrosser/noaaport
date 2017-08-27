@@ -15,6 +15,7 @@ usage: noaaport-pipe [-h] [--server SERVER [SERVER ...]]
                      [--protocol {nbs,emwin}] [--pattern PATTERN]
                      [--output OUTPUT]
                      [--log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+                     [--delimiter DELIMITER]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -24,6 +25,8 @@ optional arguments:
   --pattern PATTERN     regex to filter filenames from the feed
   --output OUTPUT       write output to a directory rather than stdout
   --log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
+  --delimiter DELIMITER
+                        Delimiter to use between files when writing to stdout
 ```
 
 Examples
