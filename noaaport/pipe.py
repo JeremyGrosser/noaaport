@@ -50,6 +50,7 @@ def main():
     parser.add_argument('--pattern', help='regex to filter filenames from the feed')
     parser.add_argument('--output', help='write output to a directory rather than stdout')
     parser.add_argument('--log-level', default='WARNING', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
+    parser.add_argument('--delimiter', default='\n', help='Delimiter to use between files when writing to stdout')
     args = parser.parse_args()
 
     noaaport.log.set_level(args.log_level)
@@ -78,5 +79,5 @@ def main():
                 fd.write(content)
                 fd.flush()
         else:
-            sys.stdout.write(content + '\n')
+            sys.stdout.write(content + args.delimiter)
             sys.stdout.flush()
