@@ -94,19 +94,16 @@ class Packet(object):
 
 
 class FileAssembler(object):
-    def __init__(self, filename, callback=None):
+    def __init__(self, filename):
         self.filename = filename
-        self.callback = callback
         self.parts = {}
+        self.assembled = []
 
     def add_part(self, packet):
         self.parts[packet.block] = packet.payload
         self.check_parts(packet)
 
     def check_parts(self, packet):
-        if self.callback is None:
-            return
-
         if not None in [self.parts.get(i, None) for i in range(1, packet.total_blocks + 1)]:
             parts = self.parts.items()
             parts.sort(key=lambda x: x[0])
@@ -117,6 +114,6 @@ class FileAssembler(object):
 
             if self.filename.endswith('.ZIS'):
                 for filename, content in noaaport.zis.decompress(self.content):
-                    self.callback(self.filename, content, zip_filename=filename)
+                    self.assembled.insert(0, (self.filename, self.content, filename))
             else:
-                self.callback(self.filename, self.content)
+                self.assembled.insert(0, (self.filename, self.content, None))

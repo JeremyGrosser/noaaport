@@ -7,9 +7,8 @@ log = noaaport.log.get_logger('noaaport.stream')
 
 
 class Streamer(object):
-    def __init__(self, hosts, callback, connection_class=noaaport.nbs.Connection, file_assembler_class=noaaport.nbs.FileAssembler):
+    def __init__(self, hosts, connection_class=noaaport.nbs.Connection, file_assembler_class=noaaport.nbs.FileAssembler):
         self.hosts = hosts
-        self.callback = callback
         self.connection_class = connection_class
         self.file_assembler_class = file_assembler_class
         self.files = {}
@@ -28,28 +27,21 @@ class Streamer(object):
                     yield packet
             except Exception, e:
                 log.error('Stream error %r: %s' % (self.hosts[i], str(e)))
+                self.close()
             i = (i + 1) % len(self.hosts)
 
-    def handle_incoming(self, filename, content, zip_filename=None):
-        if filename in self.files:
-            del self.files[filename]
+    def __iter__(self):
+        for packet in self.reliable_stream():
+            if not packet.filename in self.files:
+                self.files[packet.filename] = self.file_assembler_class(packet.filename)
+            assembler = self.files[packet.filename]
+            assembler.add_part(packet)
+            while assembler.assembled:
+                filename, content, zip_filename = assembler.assembled.pop()
+                if filename in self.files:
+                    del self.files[filename]
+                yield (filename, content, zip_filename)
 
-        if zip_filename is not None:
-            log.debug(zip_filename)
-            self.callback(zip_filename, content)
-        else:
-            log.debug(filename)
-            self.callback(filename, content)
-
-    def run(self):
-        try:
-            for packet in self.reliable_stream():
-                if not packet.filename in self.files:
-                    self.files[packet.filename] = self.file_assembler_class(
-                        packet.filename, self.handle_incoming)
-                assembler = self.files[packet.filename]
-                assembler.add_part(packet)
-                #log.debug(repr(packet))
-        except KeyboardInterrupt:
-            log.info('Caught keyboard interrupt, closing connection')
-            self.sock.close()
+    def close(self):
+        self.sock.close()
+        self.sock = None

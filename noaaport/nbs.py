@@ -79,22 +79,19 @@ class Connection(object):
 
 
 class FileAssembler(object):
-    def __init__(self, filename, callback=None):
+    def __init__(self, filename):
         self.filename = filename
-        self.callback = callback
         self.parts = {}
+        self.assembled = []
 
     def add_part(self, packet):
         self.parts[packet.header['block_number']] = packet.data
         self.check_parts(packet)
 
     def check_parts(self, packet):
-        if self.callback is None:
-            return
-
         if not None in [self.parts.get(i, None) for i in range(1, packet.header['num_blocks'] + 1)]:
             parts = self.parts.items()
             parts.sort(key=lambda x: x[0])
             content = ''.join([x[1] for x in parts])
             self.content = content
-            self.callback(self.filename, self.content)
+            self.assembled.insert(0, (self.filename, self.content, None))
