@@ -31,10 +31,10 @@ class Connection(object):
                     offset = buf.find('\xFF\xFF\xFF\xFF\xFF\xFF')
                     if offset == -1:
                         log.info('Sync marker missing! Abort!')
-                        break
                         buf = ''
+                        break
                     buf = buf[offset:]
-                    log.info('Discarding %i bytes before sync marker' % offset)
+                    log.info('Discarding %i bytes before sync marker', offset)
 
                 try:
                     packet = Packet(buf[:1116])
@@ -104,7 +104,7 @@ class FileAssembler(object):
         self.check_parts(packet)
 
     def check_parts(self, packet):
-        if not None in [self.parts.get(i, None) for i in range(1, packet.total_blocks + 1)]:
+        if None not in [self.parts.get(i, None) for i in range(1, packet.total_blocks + 1)]:
             parts = self.parts.items()
             parts.sort(key=lambda x: x[0])
             content = ''.join([x[1] for x in parts])

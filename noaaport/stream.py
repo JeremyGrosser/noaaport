@@ -14,7 +14,7 @@ class Streamer(object):
         self.files = {}
 
     def stream(self, host):
-        log.info('Connecting to %s:%i' % host)
+        log.info('Connecting to %s:%i', *host)
         self.sock = socket.socket()
         self.sock.connect(host)
         return self.connection_class(self.sock)
@@ -32,7 +32,7 @@ class Streamer(object):
 
     def __iter__(self):
         for packet in self.reliable_stream():
-            if not packet.filename in self.files:
+            if packet.filename not in self.files:
                 self.files[packet.filename] = self.file_assembler_class(packet.filename)
             assembler = self.files[packet.filename]
             assembler.add_part(packet)

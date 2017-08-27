@@ -1,8 +1,5 @@
-from time import strptime, mktime, time
 from collections import namedtuple
-import logging
 import struct
-import sys
 
 import noaaport.log
 
@@ -23,15 +20,15 @@ class NBSPacket(object):
         self.filename = self.header['filename'].rstrip('\x00')
 
         if len(data) - header_size != self.header['block_size']:
-            log.warning('Packet block size mismatch: expected: %i  got: %i' % (
-                self.header['block_size'], len(data) - header_size))
+            log.warning('Packet block size mismatch: expected: %i  got: %i',
+                        self.header['block_size'], (len(data) - header_size))
         self.data = data[header_size:]
 
     def checksum(self):
         s = 0
         for c in self.data:
             s += ord(c)
-        return s % 4294967296 # uint32 max
+        return s % 4294967296  # uint32 max
 
     def __str__(self):
         return self.filename
@@ -55,7 +52,7 @@ class Connection(object):
             buf += chunk
             if len(buf) < 12:
                 continue
-            
+
             # Parse the packet envelope
             data_id, data_size, data_checksum = struct.unpack('>III', buf[:12])
             # data_id = 1 (full content)
@@ -89,7 +86,7 @@ class FileAssembler(object):
         self.check_parts(packet)
 
     def check_parts(self, packet):
-        if not None in [self.parts.get(i, None) for i in range(1, packet.header['num_blocks'] + 1)]:
+        if None not in [self.parts.get(i, None) for i in range(1, packet.header['num_blocks'] + 1)]:
             parts = self.parts.items()
             parts.sort(key=lambda x: x[0])
             content = ''.join([x[1] for x in parts])

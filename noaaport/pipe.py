@@ -1,15 +1,14 @@
+import itertools
+import argparse
+import os.path
+import os
+import sys
+import re
+
 import noaaport.stream
 import noaaport.emwin
 import noaaport.nbs
 import noaaport.log
-
-import functools
-import itertools
-import argparse
-import os.path
-import sys
-import os
-import re
 
 
 DEFAULT_SERVERS = [('1.nbsp.inoaaport.net', 2210)]
@@ -30,7 +29,7 @@ class Pipe(object):
         self.filters = []
 
     def __iter__(self):
-        if not self.protocol in PROTOCOLS:
+        if self.protocol not in PROTOCOLS:
             log.crtical('Unknown protocol %r', self.protocol)
             return
 
@@ -65,6 +64,7 @@ def main():
 
     if args.pattern is not None:
         pattern = re.compile(args.pattern, re.IGNORECASE)
+
         def filename_filter(filename, content, zip_filename):
             return bool(pattern.match(zip_filename or filename))
         pipe.add_filter(filename_filter)
