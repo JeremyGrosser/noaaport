@@ -66,7 +66,8 @@ def main():
     if args.pattern is not None:
         pattern = re.compile(args.pattern, re.IGNORECASE)
 
-        def filename_filter(filename, content, zip_filename):
+        def filename_filter(data):
+            filename, content, zip_filename = data
             return bool(pattern.match(zip_filename or filename))
         pipe.add_filter(filename_filter)
 
