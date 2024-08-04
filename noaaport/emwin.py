@@ -10,11 +10,11 @@ log = noaaport.log.get_logger('noaaport.emwin')
 class Connection(object):
     def __init__(self, sock):
         self.sock = sock
-        self.ident = 'ByteBlast Client|NM-emwin@synack.me|V1'
-        self.ident = ''.join([chr(ord(x) ^ 0xFF) for x in self.ident])
+        self.ident = b'ByteBlast Client|NM-emwin@synack.me|V1'
+        self.ident = bytes([x ^ 0xFF for x in self.ident])
 
     def __iter__(self):
-        buf = ''
+        buf = b''
         last_ident = 0
         while True:
             now = int(time())
@@ -24,11 +24,11 @@ class Connection(object):
                 self.sock.sendall(self.ident)
 
             buf += self.sock.recv(1116)
-            if buf == '':
+            if not buf:
                 break
             while len(buf) >= 1116:
-                if not buf.startswith('\xFF\xFF\xFF\xFF\xFF\xFF'):
-                    offset = buf.find('\xFF\xFF\xFF\xFF\xFF\xFF')
+                if not buf.startswith(b'\xFF\xFF\xFF\xFF\xFF\xFF'):
+                    offset = buf.find(b'\xFF\xFF\xFF\xFF\xFF\xFF')
                     if offset == -1:
                         log.info('Sync marker missing! Abort!')
                         buf = ''
@@ -54,31 +54,32 @@ class Packet(object):
         self.parse()
 
     def parse(self):
-        self.data = ''.join([chr(ord(x) ^ 0xFF) for x in self.data])
+        self.data = bytes([x ^ 0xFF for x in self.data])
         self.header = self.parse_header(self.data[:86])
-        self.filename = self.header['PF']
-        self.block = int(self.header['PN'])
-        self.total_blocks = int(self.header['PT'])
-        self.checksum = int(self.header['CS'])
-        self.timestamp = int(mktime(strptime(self.header['FD'], '%m/%d/%Y %I:%M:%S %p')))
+        self.filename = self.header[b'PF'].decode('ascii')
+        self.block = int(self.header[b'PN'])
+        self.total_blocks = int(self.header[b'PT'])
+        self.checksum = int(self.header[b'CS'])
+        self.timestamp = int(mktime(strptime(self.header[b'FD'].decode('ascii'), '%m/%d/%Y %I:%M:%S %p')))
         self.payload = self.data[86:-6]
         if len(self.payload) != 1024:
             raise ValueError('Packet is the wrong size!')
         self.verify_checksum()
 
     def parse_header(self, data):
-        if data[:6] != ('\x00' * 6):
+        if data[:6] != (b'\x00' * 6):
             raise ValueError('Invalid packet header')
         data = data[6:]
 
-        header = data.rstrip(' \r\n')
-        header = header.split('/', 5)
+        header = data.rstrip(b' \r\n')
+        header = header.split(b'/', 5)
         header = (x for x in header if x)
-        header = ((x[:2], x[2:].strip(' ')) for x in header)
-        return dict(header)
+        header = ((x[:2], x[2:].strip(b' ')) for x in header)
+        header = dict(header)
+        return header
 
     def verify_checksum(self):
-        checksum = sum([ord(x) for x in self.payload])
+        checksum = sum(self.payload)
         if int(self.checksum) != checksum:
             raise ValueError('Checksum failed! Got: %i Expecting: %i' % (checksum, self.checksum))
 
@@ -105,15 +106,14 @@ class FileAssembler(object):
 
     def check_parts(self, packet):
         if None not in [self.parts.get(i, None) for i in range(1, packet.total_blocks + 1)]:
-            parts = self.parts.items()
+            parts = list(self.parts.items())
             parts.sort(key=lambda x: x[0])
-            content = ''.join([x[1] for x in parts])
-            if not self.filename.endswith('.ZIS'):
-                content = content.rstrip('\x00')
+            content = b''.join([x[1] for x in parts])
             self.content = content
 
             if self.filename.endswith('.ZIS'):
                 for filename, content in noaaport.zis.decompress(self.content):
+                    filename = filename.decode('ascii')
                     self.assembled.insert(0, (self.filename, self.content, filename))
             else:
                 self.assembled.insert(0, (self.filename, self.content, None))

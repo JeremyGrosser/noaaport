@@ -1,7 +1,9 @@
 import itertools
 import argparse
+import zipfile
 import os.path
 import os
+import io
 import sys
 import re
 
@@ -11,10 +13,10 @@ import noaaport.nbs
 import noaaport.log
 
 
-DEFAULT_SERVERS = [('1.nbsp.inoaaport.net', 2210)]
+DEFAULT_SERVERS = ['emwin.weathermessage.com:2211']
 PROTOCOLS = {
     'nbs':      (noaaport.nbs.Connection, noaaport.nbs.FileAssembler),
-    'emwin':    (noaaport.emwin.Connection, noaaport.nbs.FileAssembler),
+    'emwin':    (noaaport.emwin.Connection, noaaport.emwin.FileAssembler),
 }
 
 
@@ -22,7 +24,7 @@ log = noaaport.log.get_logger('noaaport.pipe')
 
 
 class Pipe(object):
-    def __init__(self, servers=DEFAULT_SERVERS, protocol='nbs'):
+    def __init__(self, servers, protocol='emwin'):
         self.servers = servers
         self.protocol = protocol
         self.stream = None
@@ -36,7 +38,7 @@ class Pipe(object):
         connection_class, file_assembler_class = PROTOCOLS[self.protocol]
         stream = noaaport.stream.Streamer(self.servers, connection_class, file_assembler_class)
         for func in self.filters:
-            stream = itertools.ifilter(func, stream)
+            stream = filter(func, stream)
         return iter(stream)
 
     def add_filter(self, func):
@@ -45,10 +47,10 @@ class Pipe(object):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--server', nargs='+', help='hostname:port', default=['1.nbsp.inoaaport.net:2210'])
-    parser.add_argument('--protocol', choices=['nbs', 'emwin'], default='nbs')
+    parser.add_argument('--server', nargs='+', help='hostname:port', default=DEFAULT_SERVERS)
+    parser.add_argument('--protocol', choices=['nbs', 'emwin'], default='emwin')
     parser.add_argument('--pattern', help='regex to filter filenames from the feed')
-    parser.add_argument('--output', help='write output to a directory rather than stdout')
+    parser.add_argument('--output', help='write output to a directory', default='data')
     parser.add_argument('--log-level', default='WARNING', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
     parser.add_argument('--delimiter', default='\n', help='Delimiter to use between files when writing to stdout')
     args = parser.parse_args()
@@ -71,14 +73,18 @@ def main():
             return bool(pattern.match(zip_filename or filename))
         pipe.add_filter(filename_filter)
 
+    if not os.path.exists(args.output):
+        os.makedirs(args.output)
+
     for filename, content, zip_filename in pipe:
         log.info(zip_filename or filename)
-        if args.output is not None:
-            if not os.path.exists(args.output):
-                os.makedirs(args.output)
-            with open(os.path.join(args.output, zip_filename or filename), 'w') as fd:
-                fd.write(content)
-                fd.flush()
+        if filename.endswith('.ZIP'):
+            content = content.rsplit(b'\x00', 1)[0]
+            bio = io.BytesIO(content)
+            zf = zipfile.ZipFile(bio)
+            zf.extractall(args.output)
         else:
-            sys.stdout.write(content + args.delimiter)
-            sys.stdout.flush()
+            outfile = os.path.join(args.output, zip_filename or filename)
+            with open(outfile, 'wb') as fd:
+                fd.write(content.rstrip(b'\x00'))
+                fd.flush()

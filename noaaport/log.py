@@ -3,8 +3,8 @@ import logging
 
 # Completely reset default logging config
 ROOT = logging.getLogger()
-map(ROOT.removeHandler, list(ROOT.handlers))
-map(ROOT.removeFilter, list(ROOT.handlers))
+list(map(ROOT.removeHandler, list(ROOT.handlers)))
+list(map(ROOT.removeFilter, list(ROOT.handlers)))
 
 
 fmt = logging.Formatter('%(asctime)s %(levelname)s %(name)s %(message)s',

@@ -87,7 +87,7 @@ class FileAssembler(object):
 
     def check_parts(self, packet):
         if None not in [self.parts.get(i, None) for i in range(1, packet.header['num_blocks'] + 1)]:
-            parts = self.parts.items()
+            parts = list(self.parts.items())
             parts.sort(key=lambda x: x[0])
             content = ''.join([x[1] for x in parts])
             self.content = content
