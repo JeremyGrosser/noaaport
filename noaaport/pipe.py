@@ -44,6 +44,21 @@ class Pipe(object):
     def add_filter(self, func):
         self.filters.append(func)
 
+def write_file(filename, content, outdir):
+    if filename.endswith('.TXT'):
+        wmo = content.split(b'\r')[0]
+        msgtype, center, timestamp  = wmo.split(b' ', 2)
+        if timestamp.find(b' ') != -1:
+            timestamp, bbb = timestamp.split(b' ', 1)
+        timestamp = timestamp.decode('ascii')
+        center = center.decode('ascii')
+
+        filename = '%s.%s.%s' % (timestamp, center, filename)
+
+    path = os.path.join(outdir, filename)
+    with open(path, 'wb') as fd:
+        fd.write(content)
+        fd.flush()
 
 def main():
     parser = argparse.ArgumentParser()
@@ -81,10 +96,14 @@ def main():
         if filename.endswith('.ZIP'):
             content = content.rsplit(b'\x00', 1)[0]
             bio = io.BytesIO(content)
-            zf = zipfile.ZipFile(bio)
-            zf.extractall(args.output)
+            try:
+                zf = zipfile.ZipFile(bio)
+                for name in zf.namelist():
+                    content = zf.read(name)
+                    write_file(name, content, args.output)
+            except Exception as e:
+                log.exception('unzip failed')
+                write_file(filename, content, args.output)
+            bio.close()
         else:
-            outfile = os.path.join(args.output, zip_filename or filename)
-            with open(outfile, 'wb') as fd:
-                fd.write(content.rstrip(b'\x00'))
-                fd.flush()
+            write_file(filename, content.rstrip(b'\x00'), args.output)
